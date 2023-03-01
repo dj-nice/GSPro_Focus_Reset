@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Windows.Forms;
-using System.Runtime.InteropServices;
+using System.ComponentModel;
+using System.Configuration;
 using System.Diagnostics;
 using System.Drawing;
-using System.ComponentModel;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Configuration;
+using System.Windows.Forms;
 
 namespace FocusedControlInOtherProcess
 {
@@ -18,53 +18,42 @@ namespace FocusedControlInOtherProcess
         string interval2 = "";
         int dfinterval = 3000;
         string dfAppName = "GSPro.exe";
-       
+
         public FormMain()
         {
             InitializeComponent();
             FillTextBox();
             interval = int.TryParse(tBInterval.Text, out interval) ? interval : dfinterval;
             Start();
-            
         }
-
-
-        
-
-       
-
-       
-        
 
         [DllImport("user32.dll")]
         internal static extern IntPtr SetForegroundWindow(IntPtr hWnd);
 
         [DllImport("user32.dll")]
         public static extern bool ShowWindowAsync(HandleRef hWnd, int nCmdShow);
-        // Win32 API Import
-        [DllImport("User32.dll")]
-        private static extern int ShowWindow(int hwnd, int nCmdShow);
-
+        
+        //[DllImport("User32.dll")]
+        //private static extern int ShowWindow(int hwnd, int nCmdShow);
+        
         // Win32 API Constants for ShowWindowAsync()
         //private const int SW_HIDE = 0;
-        private const int SW_SHOWNORMAL = 1;
-        private const int SW_NORMAL = 1;
+        //private const int SW_SHOWNORMAL = 1;
+        //private const int SW_NORMAL = 1;
         //private const int SW_SHOWMINIMIZED = 2;
         //private const int SW_SHOWMAXIMIZED = 3;
         //private const int SW_MAXIMIZE = 3;
         //private const int SW_SHOWNOACTIVATE = 4;
-        private const int SW_SHOW = 5;
+        //private const int SW_SHOW = 5;
         //private const int SW_MINIMIZE = 6;
         //private const int SW_SHOWMINNOACTIVE = 7;
         //private const int SW_SHOWNA = 8;
-        private const int SW_RESTORE = 9;
+          private const int SW_RESTORE = 9;
         //private const int SW_SHOWDEFAULT = 10;
         //private const int SW_FORCEMINIMIZE = 11;
         //private const int SW_MAX = 11;
-         
 
-
-    private void Start()
+        private void Start()
         {
             AppName = tBAppName.Text;
             int fileExtPos = AppName.LastIndexOf(".");
@@ -84,27 +73,22 @@ namespace FocusedControlInOtherProcess
             {
                 MessageBox.Show(e.Message);
             }
-           
+
         }
         private void bg2_DoWork(object sender, DoWorkEventArgs e)
-        {           
+        {
             BackgroundWorker worker = sender as BackgroundWorker;
-           
-            
             while (!bg2.CancellationPending)
             {
-               
-                    try
-                    {                       
-                        FocusProcess(AppName);
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show("Error:\n\n" + ex.Message, "System", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-
-                    Thread.Sleep(interval);
-               
+                try
+                {
+                    FocusProcess(AppName);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error:\n\n" + ex.Message, "System", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                Thread.Sleep(interval);
             }
             e.Cancel = true;
         }
@@ -115,7 +99,7 @@ namespace FocusedControlInOtherProcess
             Process[] processRunning = Process.GetProcesses();
             foreach (Process pr in processRunning)
             {
-                if (pr.ProcessName == AppName)
+                if (pr.ProcessName.ToLower() == AppName.ToLower())
                 {
                     hWnd = pr.MainWindowHandle; //use it as IntPtr not int
                     SetForegroundWindow(hWnd);
@@ -126,7 +110,6 @@ namespace FocusedControlInOtherProcess
             }
         }
 
-
         //Solution found: https://stackoverflow.com/questions/10740346/setforegroundwindow-only-working-while-visual-studio-is-open
         private const int ALT = 0xA4;
         private const int EXTENDEDKEY = 0x1;
@@ -135,30 +118,25 @@ namespace FocusedControlInOtherProcess
 
         [DllImport("user32.dll")]
         private static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, int dwExtraInfo);
-
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool IsIconic(IntPtr hWnd);
-
         [DllImport("user32.dll")]
         private static extern int ShowWindow(IntPtr hWnd, uint Msg);
-
         [DllImport("user32.dll")]
         private static extern IntPtr GetForegroundWindow();
         public static void ActivateWindow(IntPtr mainWindowHandle)
         {
             //check if already has focus
             if (mainWindowHandle == GetForegroundWindow()) return;
-
             //check if window is minimized
             if (IsIconic(mainWindowHandle))
             {
                 ShowWindow(mainWindowHandle, Restore);
+            
             }
-
             // Simulate a key press
             keybd_event(0, 0, 0, 0);
-
             SetForegroundWindow(mainWindowHandle);
         }
         private void buttonStart_Click(object sender, EventArgs e)
@@ -173,8 +151,7 @@ namespace FocusedControlInOtherProcess
             bg2.CancelAsync();
             bg2.Dispose();
             labelAppName.ForeColor = Color.Red;
-                     
-            buttonStart.Text = "Wait "+(interval/1000).ToString()+" sec.";
+            buttonStart.Text = "Wait " + (interval / 1000).ToString() + " sec.";
             await Task.Delay(interval);
             buttonStart.Text = "Start";
             buttonStart.Enabled = true;
@@ -207,15 +184,12 @@ namespace FocusedControlInOtherProcess
             //make changes
             config.AppSettings.Settings["AppName"].Value = tBAppName.Text;
             config.AppSettings.Settings["Interval"].Value = tBInterval.Text;
-
             //save to apply changes
             config.Save(ConfigurationSaveMode.Modified);
             ConfigurationManager.RefreshSection("appSettings");
-
         }
         private void FillTextBox()
         {
-
             if (ConfigurationManager.AppSettings["AppName"] != null)
             {
                 AppName = ConfigurationManager.AppSettings["AppName"];
@@ -235,7 +209,7 @@ namespace FocusedControlInOtherProcess
                 tBInterval.Text = dfinterval.ToString();
             }
         }
-       
+
 
         private void button1_Click(object sender, EventArgs e)
         {
@@ -250,34 +224,25 @@ namespace FocusedControlInOtherProcess
         {
             if (!int.TryParse(tBInterval.Text, out _))
             {
-                MessageBox.Show("Only numbers please!"+Environment.NewLine+"set default interval = 3000");
+                MessageBox.Show("Only numbers please!" + Environment.NewLine + "set default interval = 3000");
                 tBInterval.Text = dfinterval.ToString();
             }
             setConfig();
             interval2 = tBInterval.Text;
-
             interval = int.TryParse(tBInterval.Text, out interval) ? interval : dfinterval;
-
-
         }
 
         private void tBAppName_Leave(object sender, EventArgs e)
         {
             setConfig();
-
-
         }
 
         private void tBInterval_KeyDown(object sender, KeyEventArgs e)
         {
-           
-                if (e.KeyData == Keys.Enter)
-                {
-                    tBAppName.Focus();
-                }
-           
-
-
+            if (e.KeyData == Keys.Enter)
+            {
+                tBAppName.Focus();
+            }
         }
 
         private void tBAppName_KeyDown(object sender, KeyEventArgs e)

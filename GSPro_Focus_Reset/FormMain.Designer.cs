@@ -121,9 +121,9 @@
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(5, 82);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(119, 13);
+            this.label2.Size = new System.Drawing.Size(134, 13);
             this.label2.TabIndex = 6;
-            this.label2.Text = "name of App to monitor:";
+            this.label2.Text = "*.exe name of app to focus";
             // 
             // button3
             // 
