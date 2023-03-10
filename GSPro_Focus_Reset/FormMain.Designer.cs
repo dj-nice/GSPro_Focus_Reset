@@ -37,6 +37,8 @@
             this.label2 = new System.Windows.Forms.Label();
             this.button3 = new System.Windows.Forms.Button();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.rB_Focus = new System.Windows.Forms.RadioButton();
+            this.rB_onTop = new System.Windows.Forms.RadioButton();
             this.button1 = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
             this.labelAppName = new System.Windows.Forms.Label();
@@ -137,17 +139,44 @@
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.rB_Focus);
+            this.panel1.Controls.Add(this.rB_onTop);
             this.panel1.Controls.Add(this.button1);
             this.panel1.Controls.Add(this.label3);
             this.panel1.Controls.Add(this.label1);
             this.panel1.Controls.Add(this.tBInterval);
             this.panel1.Controls.Add(this.label2);
             this.panel1.Controls.Add(this.tBAppName);
-            this.panel1.Location = new System.Drawing.Point(243, 5);
+            this.panel1.Location = new System.Drawing.Point(243, 3);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(182, 133);
+            this.panel1.Size = new System.Drawing.Size(197, 175);
             this.panel1.TabIndex = 8;
             this.panel1.Visible = false;
+            // 
+            // rB_Focus
+            // 
+            this.rB_Focus.AutoSize = true;
+            this.rB_Focus.Location = new System.Drawing.Point(8, 148);
+            this.rB_Focus.Name = "rB_Focus";
+            this.rB_Focus.Size = new System.Drawing.Size(185, 17);
+            this.rB_Focus.TabIndex = 10;
+            this.rB_Focus.TabStop = true;
+            this.rB_Focus.Text = "Force App stay on top + get focus";
+            this.rB_Focus.UseVisualStyleBackColor = true;
+            this.rB_Focus.CheckedChanged += new System.EventHandler(this.rB_Focus_CheckedChanged);
+            // 
+            // rB_onTop
+            // 
+            this.rB_onTop.AutoSize = true;
+            this.rB_onTop.Checked = true;
+            this.rB_onTop.Location = new System.Drawing.Point(8, 125);
+            this.rB_onTop.Name = "rB_onTop";
+            this.rB_onTop.Size = new System.Drawing.Size(129, 17);
+            this.rB_onTop.TabIndex = 9;
+            this.rB_onTop.TabStop = true;
+            this.rB_onTop.Text = "Force App stay on top";
+            this.rB_onTop.UseVisualStyleBackColor = true;
+            this.rB_onTop.CheckedChanged += new System.EventHandler(this.rB_onTop_CheckedChanged);
             // 
             // button1
             // 
@@ -190,7 +219,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.ClientSize = new System.Drawing.Size(230, 142);
+            this.ClientSize = new System.Drawing.Size(230, 146);
             this.Controls.Add(this.labelAppName);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.button3);
@@ -199,9 +228,9 @@
             this.Controls.Add(this.labelHeader);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
-            this.MaximumSize = new System.Drawing.Size(445, 181);
+            this.MaximumSize = new System.Drawing.Size(460, 220);
             this.MinimizeBox = false;
-            this.MinimumSize = new System.Drawing.Size(246, 181);
+            this.MinimumSize = new System.Drawing.Size(246, 185);
             this.Name = "FormMain";
             this.ShowIcon = false;
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Show;
@@ -229,6 +258,8 @@
         private System.Windows.Forms.Label label3;
         private System.ComponentModel.BackgroundWorker bg2;
         private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.RadioButton rB_Focus;
+        private System.Windows.Forms.RadioButton rB_onTop;
     }
 }
 

@@ -3,7 +3,9 @@ using System.ComponentModel;
 using System.Configuration;
 using System.Diagnostics;
 using System.Drawing;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -27,11 +29,50 @@ namespace FocusedControlInOtherProcess
             Start();
         }
 
+        static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
+        //static readonly IntPtr HWND_NOTOPMOST = new IntPtr(-2);
+        //static readonly IntPtr HWND_TOP = new IntPtr(0);
+        //static readonly IntPtr HWND_BOTTOM = new IntPtr(1);
+
+        const UInt32 SWP_NOSIZE = 0x0001;
+        const UInt32 SWP_NOMOVE = 0x0002;
+      //const UInt32 SWP_NOZORDER = 0x0004;
+      //const UInt32 SWP_NOREDRAW = 0x0008;
+        const UInt32 SWP_NOACTIVATE = 0x00010;
+      //const UInt32 SWP_FRAMECHANGED = 0x00020;
+        const UInt32 SWP_SHOWWINDOW = 0x00040;
+      //const UInt32 SWP_HIDEWINDOW = 0x00080;
+      //const UInt32 SWP_NOCOPYBITS = 0x000100;
+      //const UInt32 SWP_NOOWNERZORDER = 0x000200;
+      //const UInt32 SWP_NOSENDCHANGING = 0x000400;
+      //const UInt32 SWP_DEFERERASE = 0x0002000;
+      //const UInt32 SWP_ASYNCWINDOWPOS = 0x0004000;
+
+    //SWP_NOSIZE verhindert, dass das Fenster eine neue Größe bekommt.cx und cy sind dann irrelevant und können auf 0 gesetzt werden.
+    //SWP_NOMOVE verhindert, dass das Fenster verschoben wird.x und y sind dann irrelevant und können auf 0 gesetzt werden.
+    //SWP_NOZORDER verhindert, dass die Z-Order-Position verändert wird.
+    //SWP_NOREDRAW verhindert, dass irgendetwas automatisch neu gezeichnet wird. Das betrifft sowohl das Fenster selbst, aber auch alle verdeckten Fenster werden nicht invalidiert.
+    //SWP_NOACTIVATE verhindert, dass das Fenster den Fokus erhält.
+    //SWP_FRAMECHANGED wird benutzt um Änderungen der SetWindowLong-Funktion anzuwenden. Sendet eine WM_NCCALCSIZE-Nachricht an das Fenster.
+    //SWP_SHOWWINDOW sorgt dafür, dass das Fenster sichtbar wird.Entspricht.Show() bzw. den Ändern der Visible-Eigenschaft.
+    //SWP_HIDEWINDOW sorgt dafür, dass das Fenster unsichtbar wird.Entspricht.Hide() bzw. den Ändern der Visible-Eigenschaft.
+    //SWP_NOCOPYBITS verwirft den kompletten dargestellten Fensterinhalt und sorgt so für ein vollständiges Neuzeichnen.
+    //SWP_NOOWNERZORDER verschiebt nicht das besitzende Fenster in der Z-Order.
+    //SWP_NOSENDCHANGING verhindert, dass das Fenster die WM_WINDOWPOSCHANGING-Nachricht erhält
+    //SWP_DEFERERASE verhindert, dass das Fenster die WM_SYNCPAINT-Nachricht erhält
+    //SWP_ASYNCWINDOWPOS verhindert das der aufrufende Thread durch den Thread, der das Fenster verarbeitet, blockiert werden kann.
+
+
+    [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+
         [DllImport("user32.dll")]
         internal static extern IntPtr SetForegroundWindow(IntPtr hWnd);
 
-        [DllImport("user32.dll")]
-        public static extern bool ShowWindowAsync(HandleRef hWnd, int nCmdShow);
+        // Old Way < V14
+        // [DllImport("user32.dll")]
+        //  public static extern bool ShowWindowAsync(HandleRef hWnd, int nCmdShow);
         
         //[DllImport("User32.dll")]
         //private static extern int ShowWindow(int hwnd, int nCmdShow);
@@ -102,10 +143,26 @@ namespace FocusedControlInOtherProcess
                 if (pr.ProcessName.ToLower() == AppName.ToLower())
                 {
                     hWnd = pr.MainWindowHandle; //use it as IntPtr not int
-                    SetForegroundWindow(hWnd);
-                    ShowWindowAsync(new HandleRef(null, hWnd), SW_RESTORE);
+
+                    if (rB_onTop.Checked)
+                    {
+                        //V14:
+                        // Old Way 1st: ShowWindowAsync(new HandleRef(null, hWnd), SW_RESTORE);
+                        // Old Way 2nd: SetWindowPos(hWnd, HWND_TOPMOST, 0, 0, 0, 0, TOPMOST_FLAGS);
+                        //New Way: 
+                        SetWindowPos(hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE + SWP_SHOWWINDOW + SWP_NOSIZE + SWP_NOMOVE);
+                    }
+                        if(rB_Focus.Checked) 
+                    {
+                        SetForegroundWindow(hWnd);
+                        //V14:
+                        // Old Way 1st: ShowWindowAsync(new HandleRef(null, hWnd), SW_RESTORE);
+                        // Old Way 2nd: ActivateWindow(hWnd);
+                        // New Way:
+                        SetWindowPos(hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_SHOWWINDOW + SWP_NOSIZE + SWP_NOMOVE);
+                    }
                     labelAppName.BeginInvoke(new Action(() => { labelAppName.ForeColor = System.Drawing.Color.Green; ; }));
-                    ActivateWindow(hWnd);
+                    
                 }
             }
         }
@@ -116,29 +173,35 @@ namespace FocusedControlInOtherProcess
         private const int KEYUP = 0x2;
         private const uint Restore = 9;
 
-        [DllImport("user32.dll")]
-        private static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, int dwExtraInfo);
-        [DllImport("user32.dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool IsIconic(IntPtr hWnd);
-        [DllImport("user32.dll")]
-        private static extern int ShowWindow(IntPtr hWnd, uint Msg);
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetForegroundWindow();
-        public static void ActivateWindow(IntPtr mainWindowHandle)
-        {
-            //check if already has focus
-            if (mainWindowHandle == GetForegroundWindow()) return;
-            //check if window is minimized
-            if (IsIconic(mainWindowHandle))
-            {
-                ShowWindow(mainWindowHandle, Restore);
+        // Old Way < V14
+        //[DllImport("user32.dll")]
+        //private static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, int dwExtraInfo);
+        // Old Way < V14
+        //[DllImport("user32.dll")]
+        //[return: MarshalAs(UnmanagedType.Bool)]
+        //private static extern bool IsIconic(IntPtr hWnd);
+        // Old Way < V14
+        //[DllImport("user32.dll")]
+        //private static extern int ShowWindow(IntPtr hWnd, uint Msg);
+        // Old Way < V14
+        //[DllImport("user32.dll")]
+        //private static extern IntPtr GetForegroundWindow();
+        
+        // Old Way < V14
+        //public static void ActivateWindow(IntPtr mainWindowHandle)
+        //{
+        //    //check if already has focus
+        //    if (mainWindowHandle == GetForegroundWindow()) return;
+        //    //check if window is minimized
+        //    if (IsIconic(mainWindowHandle))
+        //    {
+        //        ShowWindow(mainWindowHandle, Restore);
             
-            }
-            // Simulate a key press
-            keybd_event(0, 0, 0, 0);
-            SetForegroundWindow(mainWindowHandle);
-        }
+        //    }
+        //    // Simulate a key press
+        //    keybd_event(0, 0, 0, 0);
+        //    SetForegroundWindow(mainWindowHandle);
+        //}
         private void buttonStart_Click(object sender, EventArgs e)
         {
             setConfig();
@@ -169,13 +232,15 @@ namespace FocusedControlInOtherProcess
             if (zoom == false)
             {
                 panel1.Visible = true;
-                this.Width = 445;
+                this.Width = 460;
+                this.Height = 220;
                 button3.Text = "<<";
             }
             else
             {
                 panel1.Visible = false;
-                this.Width = 235;
+                this.Width = 246;
+                this.Height = 185;
                 button3.Text = ">>";
             }
         }
@@ -184,6 +249,14 @@ namespace FocusedControlInOtherProcess
             //make changes
             config.AppSettings.Settings["AppName"].Value = tBAppName.Text;
             config.AppSettings.Settings["Interval"].Value = tBInterval.Text;
+            if (rB_Focus.Checked)
+            {
+                config.AppSettings.Settings["forceFocus"].Value = "true";
+            }
+            else 
+            { 
+                config.AppSettings.Settings["forceFocus"].Value = "false";
+            }
             //save to apply changes
             config.Save(ConfigurationSaveMode.Modified);
             ConfigurationManager.RefreshSection("appSettings");
@@ -207,6 +280,14 @@ namespace FocusedControlInOtherProcess
             else
             {
                 tBInterval.Text = dfinterval.ToString();
+            }
+            if (ConfigurationManager.AppSettings["forceFocus"] == "true")
+            {
+                rB_Focus.Checked= true;
+            }
+            else
+            {
+                rB_onTop.Checked = true;
             }
         }
 
@@ -251,6 +332,16 @@ namespace FocusedControlInOtherProcess
             {
                 tBInterval.Focus();
             }
+        }
+
+        private void rB_Focus_CheckedChanged(object sender, EventArgs e)
+        {
+            setConfig();
+        }
+
+        private void rB_onTop_CheckedChanged(object sender, EventArgs e)
+        {
+            setConfig();
         }
     }
 }
