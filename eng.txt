@@ -1,0 +1,6 @@
+I often had the problem that GSPro lost focus when I clicked something with the mouse, e.g. in the Skytrak API. The keyboard shortcuts and applications such as Unified Remote / Air Keyboard will no longer work, too. I wrote a small app "GSPro_Focus_Reset.exe" for this purpose. Once this has started, it is checked every 3 seconds whether GSPRO has the focus and, if not so, set it.
+
+If something has to be written in another app or done apart from mouse clicks, the tool can be temporarily deactivated using the STOP button, otherwise it would set the focus back to GSPro after 3 seconds ;-)
+
+New:
+You can either keep the app in the foreground or set the focus on the window to be monitored

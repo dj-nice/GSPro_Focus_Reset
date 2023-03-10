@@ -1,0 +1,6 @@
+ich hatte häufig das problen, das GSPro den Focus verlor, wenn ich mit der Maus z.B. in der Skytrak Api etwas anklickte. Die Tastatur ShortCuts und Anwendungen wie Unfied Remote / Air Keyboard funktionieren dann auch nicht mehr. Ich habe hierfür eine kleine App "GSPro_Focus_Reset.exe" geschrieben. Wenn diese gestartet ist, wird alle 3 Sekunden geprüft, ob GSPRO den Focus hat und ggf. dieser gesetzt.
+
+Wenn in einer anderen App etwas geschrieben oder abgesehen von MausClicks erledigt werden muss, kann das Tool über die STOP taste temporär deaktiviert werden, da es ansonsten ja nach 3 Sekunden den Fokus wieder auf GSPro setzen würde ;-)
+
+Neu:
+Wahlweise die App nur im Vordergrund halten oder zusätzlich den Fokus auf dies zu überwachende Fenster setzten
